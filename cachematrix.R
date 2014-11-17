@@ -18,23 +18,27 @@
 # We assume that the matrix supplied is always invertible.
 
 
-makeCacheMatrix <- function(x = matrix()) {
+makeCacheMatrix <- function(m = matrix()) {
 
-        inv <- NULL
+        # set the value of inverse_cache to NULL (as default if cacheSolve has not yet been called)
+        inverse_cache <- NULL
+
+        # set the matrix in the cache
+        matrix_cache <- m
     
-        # define four functions; getMatrix, setMatrix, setInverse, getInverse 
-        setMatrix  <- function(y) {
-            x <<- y
-            inv <<- NULL
+        # define four functions; setMatrix, getMatrix, setInverse, getInverse 
+        setMatrix  <- function(matrix) {
+            matrix_cache <<- matrix
+            inverse_cache <<- NULL
         }
         getMatrix  <- function() {
-            x
+            matrix_cache
         }          
         setInverse <- function(inverse) {
-            inv <<- inverse
+            inverse_cache <<- inverse
         }            
         getInverse <- function() {
-            inv
+            inverse_cache
         }
         
         # creates a list with four functions
@@ -50,17 +54,40 @@ makeCacheMatrix <- function(x = matrix()) {
 # inverse from the cache
 
 cacheSolve <- function(x, ...) {
+    
+    # look in cache
+    cache_inverse <- x$getInverse()
 
-    inv <- x$getInverse()
-    if(!is.null(inv)) {
+    # if cache_inverse is not null, use cached inverse
+    if(!is.null(cache_inverse)) {
         message("getting cached data")
-        return(inv)
+        return(cache_inverse)
     }
 
-    # data is a square invertible matrix, solve(data) returns its inverse.
-    data <- x$getMatrix()
-    inv <- solve(data)
-    x$setInverse(inv)
-    inv
+    # get matrix from cache 
+    matrix <- x$getMatrix()
+    
+    # compute inverse (matrix), put the result in new_inverse
+    new_inverse <- solve(matrix)
+    
+    # set inverse in cache
+    x$setInverse(new_inverse)
+    new_inverse
 }
 
+#
+# testdata:
+#
+# mtx1 <- matrix(data = c(4,2,7,6), nrow = 2, ncol = 2)
+# mtx2 <- matrix(data = c(4,2,8,6), nrow = 2, ncol = 2)
+#
+# cmtx <- makeCacheMatrix(mtx1)
+#
+# cacheSolve(cmtx)
+# cacheSolve(cmtx)   # use cache
+#
+# cmtx <- makeCacheMatrix(mtx2)
+#
+# cacheSolve(cmtx)
+# cacheSolve(cmtx)   # use cache
+#
